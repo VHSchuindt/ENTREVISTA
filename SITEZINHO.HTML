@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ok, isso é gay</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+            color: #333;
+            /* Remover display: flex; daqui para evitar tela branca */
+            min-height: 100vh;
+        }
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            text-align: center;
+        }
+        .lock-screen input[type="password"] {
+            padding: 12px 20px;
+            margin: 10px 0;
+            border: 2px solid #007bff;
+            border-radius: 25px;
+            font-size: 1.1em;
+            outline: none;
+            width: 80%;
+            max-width: 300px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        }
+        .lock-screen input[type="password"]::placeholder {
+            color: #aaa;
+        }
+        .lock-screen button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .lock-screen button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        .lock-screen .error-lock {
+            color: #ffdddd;
+            margin-top: 10px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        /* Main content styles */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            /* Modificações aqui: */
+            visibility: hidden; /* Inicialmente invisível */
+            opacity: 0; /* Começa transparente */
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out, visibility 0.5s ease-in-out;
+        }
+        .container.unlocked {
+            visibility: visible; /* Torna visível */
+            opacity: 1;
+            transform: translateY(0);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+        h2, h3, h4 {
+            color: #007bff;
+            border-bottom: 2px solid #e0e6ed;
+            padding-bottom: 8px;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+        p {
+            color: #555;
+            margin-bottom: 10px;
+        }
+        strong {
+            color: #007bff;
+        }
+        .section-header {
+            background-color: #e6f2ff;
+            padding: 12px;
+            margin-top: 25px;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            font-weight: bold;
+        }
+        .score-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #f9fbfd;
+            border: 1px solid #cce0ff;
+            border-left: 5px solid #007bff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            opacity: 0;
+            transition: opacity 1s ease-in-out, transform 0.5s ease-in-out;
+            transform: translateX(-10px);
+        }
+        .score-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .score-item h4 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .error-message {
+            color: #dc3545;
+            font-weight: bold;
+            display: none;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: #fff0f3;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .calculate-button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .calculate-button:hover {
+            background-color: #218838;
+        }
+        .status-text {
+            font-weight: bold;
+            color: #008000;
+            margin-top: 10px;
+            display: block;
+        }
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+            }
+            .container {
+                margin: 10px;
+                padding: 15px;
+                width: calc(100% - 20px);
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            h2, h3, h4 {
+                font-size: 1.2em;
+            }
+            .lock-screen input[type="password"] {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lock-screen" id="lockScreen">
+        <h1>Acesso Restrito</h1>
+        <p>Por favor, insira a senha para continuar:</p>
+
+        <input type="password" id="passwordInput" placeholder="Digite a senha (nome de cantor)" autofocus>
+        <button onclick="checkPassword()">Entrar</button>
+        <p class="error-lock" id="lockError">Senha incorreta. Tente novamente.</p>
+    </div>
+
+    <div class="container" id="mainContent">
+        <h1>RELATÓRIO DE ENTREVISTA (SUPER SÉRIO!)</h1>
+                <strong style="color: #333;">-----------------------------------------------------------</strong>
+        <h2>Descrição</h2>
+        <p>O formulário a seguir apresenta os resultados de vários critérios avaliados na entrevista realizada no dia <strong>20/06/2025</strong>.</p>
+        <p>A pontuação funciona em uma escala de <strong>0</strong> como <strong style="color: #333;">"não atende os requisitos"</strong>  e <strong>10</strong> como <strong style="color: #333;">"tá esperando o que, irmão?"</strong>.</p>
+        <p> <strong style="color: #9e2323;">Gentileza se atentar aos pontos de atenção.</strong></p>
+
+        <strong style="color: #333;">-----------------------------------------------------------</strong>
+        <h2 class="section-header">Marcação de Pontuação:</h2>
+
+        <div class="score-item" id="beleza-section">
+            <h4>BELEZA/ESTILO</h4>
+            <button class="calculate-button" onclick="calculateBeauty()">Calcular Beleza</button>
+            <p id="beauty-score" style="display: none;">11/10</p>
+            <p class="error-message" id="beauty-error">A beleza é IMENSURÁVEL!</p>
+            <p><strong>OBSERVAÇÃO:</strong> A entrevistada possui características únicas, exóticas, seu estilo não foi tão demonstrado, intercalando entre momentos com e sem vestes, podemos dizer que é a representação de um corpo celeste, radiante e excêntrico.</p>
+            <span class="status-text">STATUS: APROVADA+++++++++</span>
+        </div>
+
+        <div class="score-item">
+            <h4>COMUNICAÇÃO</h4>
+            <p>10/10</p>
+            <p><strong>OBSERVAÇÃO:</strong> A entrevistada possuiu uma voz delicada e meiga, apesar de demonstrar sinais de timidez, suas curiosidades vencem sua timidez. Sabe trazer um assunto confortavel e muito interessante, além de  hablar e dar uma militada daquelas.</p>
+            <span class="status-text">STATUS: APROVADA++++++++++++++</span>
+        </div>
+        
+        <div class="score-item">
+            <h4>HABILIDADES</h4>
+            <p>10/10</p>
+            <p><strong>OBSERVAÇÃO:</strong> A entrevistada possui habilidades artísticas muito boas, seus tons criativos se sobressaem nos seguintes pontos: canta muito bem (sem experiência comprovada :( ), tons artísticos, como pintura e instrumentos musicais, além de ser EXPERTE em bolar um (mesmo com efeito de drogas em grandes quantidades). Além disso, em outros aspectos, a entrevistada Gabrielli superpreencheu o entrevistador em momentos de altas temperaturas.</p>
+            <span class="status-text">STATUS: APROVADA+++++</span>
+        </div>
+        
+        <div class="score-item">
+            <h4>GOSTO MUSICAL</h4>
+            <p>10/10</p>
+            <p><strong>OBSERVAÇÃO:</strong> A entrevistada possui gostos musicais que se enquadram nos requisitos principais, apesar de não ser a maior fã de rockzinho, apresenta um gosto do caralho com músicas que vão marcar o entrevistado.</p>
+            <span class="status-text">STATUS: APROVADA+++++</span>
+        </div>
+        
+        <div class="score-item">
+            <h4>HUMOR</h4>
+            <p>8/10</p>
+            <p><strong>OBSERVAÇÃO:</strong> Um clássico, aquele humor duvidoso, que julga mas acolhe. Porém, senti falta de mais tentativas de piadas. Novamente, as que foram introduzidas no decorrer da entrevista foram do balacobaco.</p>
+            <span class="status-text">STATUS: APROVADA++++</span>
+        </div>
+
+        <strong style="color: #333;">-----------------------------------------------------------</strong>
+        <h2 class="section-header">Conclusão:</h2>
+        <p>Acho que procuramos pessoas muito únicas e acabamos nos perdendo nos detalhes importantes na hora da contratação. A entrevistada Gabrielli Barbosa consegue entregar algo além do que se promete, tem fortes inspirações em Marie Curie para sua vida. É uma pessoa rica em cultura e rica financeiramente também (em análise de ser burguesa safada...). Foi uma das melhores entrevistas desde que comecei nesse ramo. A oportunidade de **freelances** está aberta, além de ser uma escolha saudável (tá foda a CLT e a UNIC, bicho!). Aguardando experiências futuras (com substâncias) para melhores formulários.</p>
+    </div>
+
+    <script>
+        const correctPassword = "michael kiwanuka";
+        const lockScreen = document.getElementById('lockScreen');
+        const mainContent = document.getElementById('mainContent');
+        const passwordInput = document.getElementById('passwordInput');
+        const lockError = document.getElementById('lockError');
+
+        function checkPassword() {
+            if (passwordInput.value.toLowerCase() === correctPassword.toLowerCase()) {
+                lockScreen.style.display = 'none'; // Esconde a tela de bloqueio
+                mainContent.classList.add('unlocked'); // Adiciona a classe para mostrar o conteúdo principal
+                // O efeito de fade-in dos itens de pontuação já está dentro da função de desbloqueio,
+                // garantindo que eles apareçam depois que o conteúdo principal estiver visível.
+                setTimeout(() => {
+                    const scoreItems = document.querySelectorAll('.score-item');
+                    scoreItems.forEach((item, index) => {
+                        setTimeout(() => {
+                            item.classList.add('visible');
+                        }, index * 200);
+                    });
+                }, 500); // Pequeno atraso para permitir que o container principal apareça primeiro
+            } else {
+                lockError.style.display = 'block';
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+
+        passwordInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        function calculateBeauty() {
+            const beautyScore = document.getElementById('beauty-score');
+            const beautyError = document.getElementById('beauty-error');
+            
+            beautyScore.style.display = 'none';
+            beautyError.style.display = 'block';
+        }
+
+  
+    </script>
+</body>
+</html>
